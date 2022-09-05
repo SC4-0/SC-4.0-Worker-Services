@@ -4,6 +4,7 @@
 # .\helm.exe install kong/kong --generate-name --set ingressController.installCRDs=false
 
 # kubectl apply -f .\transcriptionservice.yaml
+# kubectl apply -f .\nerservice.yaml
 # kubectl apply -f .\ingress.yaml
 
 # .\helm.exe list
@@ -25,5 +26,12 @@ spec:
         backend:
           service:
             name: transcription-service
+            port:
+              number: 80
+      - path: /ner-service
+        pathType: Prefix
+        backend:
+          service:
+            name: ner-service
             port:
               number: 80
