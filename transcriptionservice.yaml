@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transcription-service
+spec:
+  selector:
+    matchLabels:
+      app: transcription-service
+  template:
+    metadata:
+      labels:
+        app: transcription-service
+    spec:
+      containers:
+        - name: transcription-service
+          image: jonathanchewst/transcriptionservice:1.0.0
+          env:
+            - name: "UI_URL"
+              value: "*"
+            - name: "ASPNETCORE_ENVIRONMENT"
+              value: "Development"
+            - name: "RABBITMQ_HOST"
+              value: "host.docker.internal"
+            - name: "RABBITMQ_PORT"
+              value: "31672"
+            - name: "RABBITMQ_USER"
+              value: "guest"
+            - name: "RABBITMQ_PASSWORD"
+              value: "guest"
+            - name: "RABBITMQ_VHOST"
+              value: "/"
+            - name: "RABBITMQ_HEARTBEAT"
+              value: "60"
+            - name: "RABBITMQ_TRANSCRIPTION_EXCHANGE"
+              value: ""
+            - name: "RABBITMQ_TRANSCRIPTION_QUEUE"
+              value: "transcription"
+            - name: "RABBITMQ_TRANSCRIPTION_ROUTING_KEY"
+              value: ""
+            - name: "SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"
+              value: "200000"
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: transcription-service
+# spec:
+#   type: NodePort
+#   selector:
+#     app: transcription-service
+#   ports:
+#     - port: 80
+#       targetPort: 80
+#       nodePort: 31290
+
+# SERVICE
+# add in entry for ingress in ingress repo and run jenkins pipeline for ingress to update 
+apiVersion: v1
+kind: Service
+metadata:
+  name: transcription-service
+  labels:
+    app: transcription-service
+spec:
+  ports:
+  - targetPort: 80
+    port: 80
+    protocol: TCP
+  selector:
+    app: transcription-service
+  type: ClusterIP

@@ -1,0 +1,29 @@
+# Setting up kong
+# .\helm.exe repo add kong https://charts.konghq.com
+# .\helm.exe repo update
+# .\helm.exe install kong/kong --generate-name --set ingressController.installCRDs=false
+
+# kubectl apply -f .\transcriptionservice.yaml
+# kubectl apply -f .\ingress.yaml
+
+# .\helm.exe list
+# .\helm.exe uninstall <name>
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /transcription-service
+        pathType: Prefix
+        backend:
+          service:
+            name: transcription-service
+            port:
+              number: 80
