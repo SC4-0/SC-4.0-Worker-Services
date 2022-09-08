@@ -31,7 +31,7 @@ namespace TranscriptionService
             queue = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_QUEUE");
             routingKey = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_ROUTING_KEY") ?? "";
 
-            signalrMessageSize = int.Parse(Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE") ?? "32000");
+            signalrMessageSize = int.Parse(Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"));
 
             allowedOrigins = Environment.GetEnvironmentVariable("UI_URL") ?? "";
         }
