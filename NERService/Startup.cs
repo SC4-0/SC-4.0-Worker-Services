@@ -14,9 +14,25 @@ namespace NERService
 {
     public class Startup
     {
+        string exchange;
+        string queue;
+        string routingKey;
+
+        int signalrMessageSize;
+
+        string allowedOrigins;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            exchange = Environment.GetEnvironmentVariable("RABBITMQ_NER_EXCHANGE") ?? "";
+            queue = Environment.GetEnvironmentVariable("RABBITMQ_NER_QUEUE");
+            routingKey = Environment.GetEnvironmentVariable("RABBITMQ_NER_ROUTING_KEY") ?? "";
+
+            signalrMessageSize = int.Parse(Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"));
+
+            allowedOrigins = Environment.GetEnvironmentVariable("UI_URL") ?? "";
         }
 
         public IConfiguration Configuration { get; }
@@ -24,18 +40,11 @@ namespace NERService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            var exchange = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_EXCHANGE") ?? "";
-            var queue = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_QUEUE");
-            var routingKey = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_ROUTING_KEY") ?? "";
-
-            var signalrMessageSize = Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE") ?? "32000";
-
             services.AddSingleton<IConnectionProvider, ConnectionProvider>();
             services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(), exchange, queue, routingKey, ExchangeType.Topic));
 
             services.AddSignalR(o => {
-                o.MaximumReceiveMessageSize = int.Parse(signalrMessageSize);
+                o.MaximumReceiveMessageSize = signalrMessageSize;
             });
 
             services.AddControllers();
@@ -63,7 +72,7 @@ namespace NERService
             app.UseCors(builder =>
             {
                 builder
-                .WithOrigins(Environment.GetEnvironmentVariable("UI_URL"))
+                .WithOrigins(allowedOrigins)
                 .AllowAnyMethod()
                 .AllowAnyHeader();
             });

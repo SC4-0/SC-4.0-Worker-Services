@@ -27,10 +27,6 @@ spec:
               value: "guest"
             - name: "RABBITMQ_PASSWORD"
               value: "guest"
-            - name: "RABBITMQ_VHOST"
-              value: "/"
-            - name: "RABBITMQ_HEARTBEAT"
-              value: "60"
             - name: "RABBITMQ_TRANSCRIPTION_EXCHANGE"
               value: ""
             - name: "RABBITMQ_TRANSCRIPTION_QUEUE"
@@ -39,9 +35,12 @@ spec:
               value: ""
           resources:
             limits:
+              memory: "500Mi"
               cpu: 500m
             requests:
               cpu: 200m
+          ports:
+            - containerPort: 80
 ---
 # SERVICE
 # add in entry for ingress in ingress repo and run jenkins pipeline for ingress to update 
