@@ -18,6 +18,10 @@ REM NERService
 docker image build --file ./Dockerfile_NERService -t nerservice .
 docker container run -d -p 5000:80 --name NERService nerservice
 
+REM StateService
+docker image build --file ./Dockerfile_StateService -t stateservice .
+docker container run -d -p 5000:80 --name StateService stateservice
+
 # Navigate to the Angular UI project folder and execute the below command
 ng serve
 ```

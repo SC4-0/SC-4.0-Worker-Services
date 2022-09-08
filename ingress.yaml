@@ -35,3 +35,10 @@ spec:
             name: ner-service
             port:
               number: 80
+      - path: /state-service
+        pathType: Prefix
+        backend:
+          service:
+            name: state-service
+            port:
+              number: 80

@@ -11,7 +11,7 @@ namespace TranscriptionService.SignalR
         {
             await Task.Factory.StartNew(new Action(() =>
             {
-                Console.WriteLine($"Message received from client: {message}");
+                Console.WriteLine($"Message received from client: {user}");
             }));
         }
     }

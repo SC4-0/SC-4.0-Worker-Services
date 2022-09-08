@@ -1,0 +1,38 @@
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
+WORKDIR /app
+EXPOSE 80 443 5000
+
+ENV UI_URL=*
+
+ENV RABBITMQ_CLIENT="State Service"
+ENV RABBITMQ_HOST=host.docker.internal
+ENV RABBITMQ_PORT=31672
+ENV RABBITMQ_USER=guest
+ENV RABBITMQ_PASSWORD=guest
+ENV RABBITMQ_VHOST=/
+ENV RABBITMQ_STATE_EXCHANGE=""
+ENV RABBITMQ_STATE_QUEUE="state"
+ENV RABBITMQ_STATE_ROUTING_KEY="state"
+
+ENV SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE=32000
+
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+WORKDIR /src
+COPY ["SC 4.0.sln", "SC 4.0/"]
+COPY ["StateService/StateService.csproj", "StateService/"]
+COPY ["SimpleRabbit/SimpleRabbit.csproj", "SimpleRabbit/"]
+
+RUN dotnet restore "StateService/StateService.csproj"
+COPY . .
+WORKDIR "/src/StateService"
+RUN dotnet build "StateService.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "StateService.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "StateService.dll"]

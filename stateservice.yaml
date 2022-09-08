@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: state-service
+spec:
+  selector:
+    matchLabels:
+      app: state-service
+  template:
+    metadata:
+      labels:
+        app: state-service
+    spec:
+      containers:
+        - name: state-service
+          image: jonathanchewst/stateservice:1.0.0
+          env:
+            - name: "UI_URL"
+              value: "*"
+            - name: "ASPNETCORE_ENVIRONMENT"
+              value: "Development"
+            - name: "RABBITMQ_CLIENT"
+              value: "State Service"
+            - name: "RABBITMQ_HOST"
+              value: "host.docker.internal"
+            - name: "RABBITMQ_PORT"
+              value: "31672"
+            - name: "RABBITMQ_USER"
+              value: "guest"
+            - name: "RABBITMQ_PASSWORD"
+              value: "guest"
+            - name: "RABBITMQ_STATE_EXCHANGE"
+              value: ""
+            - name: "RABBITMQ_STATE_QUEUE"
+              value: "state"
+            - name: "RABBITMQ_STATE_ROUTING_KEY"
+              value: "state"
+            - name: "SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"
+              value: "32000"
+          resources:
+            limits:
+              memory: "500Mi"
+              cpu: 500m
+            requests:
+              cpu: 200m
+          ports:
+            - containerPort: 80
+---
+
+# SERVICE
+# add in entry for ingress in ingress repo and run jenkins pipeline for ingress to update 
+apiVersion: v1
+kind: Service
+metadata:
+  name: state-service
+  labels:
+    app: state-service
+spec:
+  ports:
+  - targetPort: 80
+    port: 80
+    protocol: TCP
+  selector:
+    app: state-service
+  type: ClusterIP
