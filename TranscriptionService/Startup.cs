@@ -42,7 +42,7 @@ namespace TranscriptionService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IConnectionProvider, ConnectionProvider>();
-            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(), exchange, queue, routingKey, ExchangeType.Topic));
+            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(), exchange, queue, routingKey, ExchangeType.Fanout));
 
             services.AddSignalR(o => {
                 o.MaximumReceiveMessageSize = signalrMessageSize;
