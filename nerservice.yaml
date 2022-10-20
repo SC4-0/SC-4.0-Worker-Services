@@ -27,11 +27,13 @@ spec:
               value: "guest"
             - name: "RABBITMQ_PASSWORD"
               value: "guest"
-            - name: "RABBITMQ_TRANSCRIPTION_EXCHANGE"
+            - name: "RABBITMQ_HEARTBEAT"
+              value: "1200"
+            - name: "RABBITMQ_NER_EXCHANGE"
               value: ""
-            - name: "RABBITMQ_TRANSCRIPTION_QUEUE"
-              value: "ner"
-            - name: "RABBITMQ_TRANSCRIPTION_ROUTING_KEY"
+            - name: "RABBITMQ_NER_QUEUE"
+              value: "slot-intent"
+            - name: "RABBITMQ_NER_ROUTING_KEY"
               value: ""
           resources:
             limits:

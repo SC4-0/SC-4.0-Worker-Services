@@ -20,7 +20,7 @@ namespace StateService.SignalR
             _logger = logger;
 
             exchange = Environment.GetEnvironmentVariable("RABBITMQ_STATE_EXCHANGE") ?? "";
-            queue = Environment.GetEnvironmentVariable("RABBITMQ_STATE_QUEUE");
+            
             routingKey = Environment.GetEnvironmentVariable("RABBITMQ_STATE_ROUTING_KEY") ?? "";
         }
 

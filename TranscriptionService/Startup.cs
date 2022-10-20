@@ -5,8 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
-using RabbitMQ.Client;
-using RabbitMQHelper;
+using SimpleRabbit;
 using System;
 using TranscriptionService.Controllers;
 using TranscriptionService.SignalR;
@@ -15,10 +14,6 @@ namespace TranscriptionService
 {
     public class Startup
     {
-        string exchange;
-        string queue;
-        string routingKey;
-
         int signalrMessageSize;
 
         string allowedOrigins;
@@ -26,10 +21,6 @@ namespace TranscriptionService
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            exchange = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_EXCHANGE") ?? "";
-            queue = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_QUEUE");
-            routingKey = Environment.GetEnvironmentVariable("RABBITMQ_TRANSCRIPTION_ROUTING_KEY") ?? "";
 
             signalrMessageSize = int.Parse(Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"));
 
@@ -41,8 +32,7 @@ namespace TranscriptionService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IConnectionProvider, ConnectionProvider>();
-            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(), exchange, queue, routingKey, ExchangeType.Fanout));
+            services.AddSingleton<IRabbitMQServiceProvider, RabbitMQServiceProvider>();
 
             services.AddSignalR(o => {
                 o.MaximumReceiveMessageSize = signalrMessageSize;

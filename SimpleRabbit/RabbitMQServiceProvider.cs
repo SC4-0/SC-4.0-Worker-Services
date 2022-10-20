@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-
 namespace SimpleRabbit
 {
     public sealed class RabbitMQServiceProvider : IRabbitMQServiceProvider
@@ -18,13 +17,13 @@ namespace SimpleRabbit
         private IConnection _connection;
         private IModel _channel;
 
-        private readonly List<string> _queuesCollection;
+        private readonly List<RabbitInfo> _rabbitInfoCollection;
         private readonly List<Func<string, IDictionary<string, object>, bool>>  _callbackCollection;
 
         public RabbitMQServiceProvider(ILogger<RabbitMQServiceProvider> logger)
         {
             _logger = logger;
-            _queuesCollection = new List<string>();
+            _rabbitInfoCollection = new List<RabbitInfo>();
             _callbackCollection = new List<Func<string, IDictionary<string, object>, bool>>();
 
             this._factory = new ConnectionFactory
@@ -62,11 +61,11 @@ namespace SimpleRabbit
                     Connect();
                     _logger.LogInformation("RabbitMQ Connected!");
                     mres.Set();
-                   if(_queuesCollection != null)
+                   if(_rabbitInfoCollection != null)
                    {
-                        for (int i = 0; i < _queuesCollection.Count; i++)
+                        for (int i = 0; i < _rabbitInfoCollection.Count; i++)
                         {
-                            this.StartSubscribe(_queuesCollection[i], _callbackCollection[i]);
+                            this.StartSubscribe(_rabbitInfoCollection[i], _callbackCollection[i]);
                         }
                    }
                   
@@ -107,19 +106,28 @@ namespace SimpleRabbit
             }
         }
 
-        public void Subscribe(string queue, Func<string, IDictionary<string, object>, bool> callback)
+        public void Subscribe(RabbitInfo rabbitInfo, Func<string, IDictionary<string, object>, bool> callback)
         {
-            this._queuesCollection.Add(queue);
+            this._rabbitInfoCollection.Add(rabbitInfo);
             this._callbackCollection.Add(callback);
 
-            this.StartSubscribe(queue, callback);
-
+            this.StartSubscribe(rabbitInfo, callback);
         }
 
-        private void StartSubscribe(string queue, Func<string, IDictionary<string, object>, bool> callback)
+        private void StartSubscribe(RabbitInfo rabbitInfo, Func<string, IDictionary<string, object>, bool> callback)
         {
-            this._channel.QueueDeclare(queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
-            var consumer = new EventingBasicConsumer(this._channel);
+            _channel.QueueDeclare(rabbitInfo.queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            var consumer = new EventingBasicConsumer(_channel);
+            var ttl = new Dictionary<string, object>
+            {
+                {"x-message-ttl", 30000 }
+            };
+
+            if (string.IsNullOrEmpty(rabbitInfo.exchange) == false)
+            {
+                _channel.ExchangeDeclare(rabbitInfo.exchange, rabbitInfo.exchange_type, arguments: ttl);
+                _channel.QueueBind(rabbitInfo.queue, rabbitInfo.exchange, rabbitInfo.routing_key);
+            }
 
             consumer.Received += (sender, e) =>
             {
@@ -132,7 +140,7 @@ namespace SimpleRabbit
                 }
             };
 
-            this._channel.BasicConsume(queue, false, consumer);
+            _channel.BasicConsume(rabbitInfo.queue, false, consumer);
         }
 
         public void Publish(string message, string queue, string routingKey, IDictionary<string, object> messageAttributes, string exchange = "")

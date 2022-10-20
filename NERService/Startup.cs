@@ -6,18 +6,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using NERService.Controllers;
 using NERService.SignalR;
-using RabbitMQ.Client;
-using RabbitMQHelper;
 using System;
+using SimpleRabbit;
 
 namespace NERService
 {
     public class Startup
     {
-        string exchange;
-        string queue;
-        string routingKey;
-
         int signalrMessageSize;
 
         string allowedOrigins;
@@ -25,10 +20,6 @@ namespace NERService
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            exchange = Environment.GetEnvironmentVariable("RABBITMQ_NER_EXCHANGE") ?? "";
-            queue = Environment.GetEnvironmentVariable("RABBITMQ_NER_QUEUE");
-            routingKey = Environment.GetEnvironmentVariable("RABBITMQ_NER_ROUTING_KEY") ?? "";
 
             signalrMessageSize = int.Parse(Environment.GetEnvironmentVariable("SIGNALR_MAXIMUM_RECEIVE_MESSAGE_SIZE"));
 
@@ -40,8 +31,7 @@ namespace NERService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IConnectionProvider, ConnectionProvider>();
-            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(), exchange, queue, routingKey, ExchangeType.Topic));
+            services.AddSingleton<IRabbitMQServiceProvider, RabbitMQServiceProvider>();
 
             services.AddSignalR(o => {
                 o.MaximumReceiveMessageSize = signalrMessageSize;
